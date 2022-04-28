@@ -125,21 +125,20 @@ static bgfx::ShaderHandle createShader(
 
 struct PosColorVertex
 {
-	float x;
-	float y;
-	float z;
+	glm::vec3 position;
+	glm::vec3 normal;
 	uint32_t abgr;
 };
 
 static PosColorVertex cube_vertices[] = {
-	{-1.0f, 1.0f, 1.0f, 0xff000000},   
-	{1.0f, 1.0f, 1.0f, 0xff0000ff},
-	{-1.0f, -1.0f, 1.0f, 0xff00ff00},
-	{1.0f, -1.0f, 1.0f, 0xff00ffff},
-	{-1.0f, 1.0f, -1.0f, 0xffff0000},
-	{1.0f, 1.0f, -1.0f, 0xffff00ff},
-	{-1.0f, -1.0f, -1.0f, 0xffffff00},
-	{1.0f, -1.0f, -1.0f, 0xffffffff},
+	{{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, 0xff000000},
+	{{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, 0xff0000ff},
+	{{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, -1.0f}, 0xff00ff00},
+	{{0.5f, 0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}, 0xff00ffff},
+	{{-0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, 0xffff0000},
+	{{0.5f, 0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, 0xffff00ff},
+	{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, 0xffffff00},
+	{{0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 1.0f}, 0xffffffff},
 };
 
 static const uint16_t cube_tri_list[] = {
@@ -153,6 +152,7 @@ void createCube(MeshHandle handle)
 	ms_layout
 		.begin()
 		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.end();
 
@@ -170,7 +170,7 @@ void createCube(MeshHandle handle)
 struct View
 {
 	unsigned int id = 0;
-	glm::vec3 position = { -10.0f, -5.0f, -30.0f };
+	glm::vec3 position = { -10.0f, -5.0f, -20.0f };
 	glm::quat rotation = { 1, 0, 0, 0 };
 	float fov = 60.0f;
 	unsigned int width = 800;
