@@ -19,7 +19,7 @@ void main() {
 	vec4 color = v_color0;
 
     gl_FragColor = v_color0;
-	vec3 lightDir = vec3(0.0, 0.0, -1.0);
+	vec3 lightDir = vec3(0.0, -1.0, 0.0);
 	vec3 normal = normalize(v_normal);
 	vec3 view = normalize(v_view);
 	vec2 bln = blinn(lightDir, normal, view);

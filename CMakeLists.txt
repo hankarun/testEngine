@@ -10,6 +10,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/external/bgfx/include
     ${CMAKE_SOURCE_DIR}/external/SDL2-2.0.20/include
     ${CMAKE_SOURCE_DIR}/external/glm-master
+    ${CMAKE_SOURCE_DIR}/external/tiny_obj_loader/include
 )
 
 ADD_LIBRARY(bgfx STATIC IMPORTED)

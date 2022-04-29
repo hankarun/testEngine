@@ -8,15 +8,19 @@
 #include "glm/gtc/quaternion.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+
 #include <iostream>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <random>
 
+const char* modelFilename = "C:\\Users\\hankarun\\Desktop\\bgfx\\testEngine\\data\\model\\untitled.obj";
+
 namespace fileops
 {
-
 	inline static std::streamoff stream_size(std::istream& file)
 	{
 		std::istream::pos_type current_pos = file.tellg();
@@ -130,24 +134,42 @@ struct PosColorVertex
 	uint32_t abgr;
 };
 
-static PosColorVertex cube_vertices[] = {
-	{{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, 0xff000000},
-	{{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, 0xff0000ff},
-	{{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, -1.0f}, 0xff00ff00},
-	{{0.5f, 0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}, 0xff00ffff},
-	{{-0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, 0xffff0000},
-	{{0.5f, 0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, 0xffff00ff},
-	{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, 0xffffff00},
-	{{0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 1.0f}, 0xffffffff},
-};
-
-static const uint16_t cube_tri_list[] = {
-	0, 1, 2, 1, 3, 2, 4, 6, 5, 5, 6, 7, 0, 2, 4, 4, 2, 6,
-	1, 5, 3, 5, 7, 3, 0, 4, 1, 4, 5, 1, 2, 3, 6, 6, 3, 7,
-};
-
-void createCube(MeshHandle handle)
+bool loadMesh(const MeshHandle& handle, const char* filename)
 {
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string warn, err;
+
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename)) {
+		throw std::runtime_error(warn + err);
+	}
+	std::vector<PosColorVertex> vertices;
+	std::vector<uint16_t> indices;
+
+	for (const auto& shape : shapes) {
+		for (const auto& index : shape.mesh.indices) {
+			PosColorVertex vertex{};
+
+			vertex.position = {
+				attrib.vertices[3 * index.vertex_index + 0],
+				attrib.vertices[3 * index.vertex_index + 1],
+				attrib.vertices[3 * index.vertex_index + 2]
+			};
+
+			vertex.normal = {
+				attrib.vertices[3 * index.normal_index + 0],
+				attrib.vertices[3 * index.normal_index + 1],
+				attrib.vertices[3 * index.normal_index + 2]
+			};
+
+			vertex.abgr = 0xffffffff;
+
+			vertices.push_back(vertex);
+			indices.push_back(indices.size());
+		}
+	}
+
 	bgfx::VertexLayout ms_layout;
 	ms_layout
 		.begin()
@@ -157,12 +179,12 @@ void createCube(MeshHandle handle)
 		.end();
 
 	auto vbh = bgfx::createVertexBuffer(
-		bgfx::makeRef(cube_vertices, sizeof(cube_vertices))
+		bgfx::copy(vertices.data(), vertices.size() * sizeof(vertices[0]))
 		, ms_layout
 	);
 
 	auto ibh = bgfx::createIndexBuffer(
-		bgfx::makeRef(cube_tri_list, sizeof(cube_tri_list))
+		bgfx::copy(indices.data(), indices.size() * sizeof(indices[0]))
 	);
 	setMesh(handle, vbh, ibh);
 }
@@ -281,7 +303,7 @@ int main(int argc, char** argv)
 
 	View view0;
 	MeshHandle cubeMesh = createMesh();
-	createCube(cubeMesh);
+	loadMesh(cubeMesh, modelFilename);
 
 	constexpr int meshCount = 25;
 
@@ -301,11 +323,11 @@ int main(int argc, char** argv)
 	{
 		for (int y = 0; y < rowCount; ++y)
 		{
-			float angle = distrib(gen);
 			int index = x + y * rowCount;
-			objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(0, 1, 0));
-			objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(1, 0, 0));
-			objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(0, 0, 1));
+			//float angle = distrib(gen);
+			//objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(0, 1, 0));
+			//objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(1, 0, 0));
+			//objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(0, 0, 1));
 			objects[index].position = { x * 4, y * 4, -4 };
 		}
 	}
@@ -368,8 +390,8 @@ int main(int argc, char** argv)
 			}
 		};
 
-		for (auto& object : objects)
-			updateObject(object);
+		//for (auto& object : objects)
+		//	updateObject(object);
 
 		renderPipeline.render(view0, objects);
 

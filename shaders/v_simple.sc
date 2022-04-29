@@ -6,7 +6,7 @@ $output v_pos, v_view, v_normal, v_color0
 void main() {
 	vec3 pos = a_position;
 
-	vec3 normal = a_normal.xyz*2.0 - 1.0;
+	vec3 normal = a_normal.xyz * 2.0 - 1.0;
 
 	gl_Position = mul(u_modelViewProj, vec4(pos, 1.0) );
 	v_pos = gl_Position.xyz/gl_Position.w;
