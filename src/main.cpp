@@ -17,7 +17,8 @@
 #include <vector>
 #include <random>
 
-const char* modelFilename = "C:\\Users\\hankarun\\Desktop\\bgfx\\testEngine\\data\\model\\untitled.obj";
+const char* cube = "C:\\Users\\hankarun\\Desktop\\bgfx\\testEngine\\data\\cube\\untitled.obj";
+const char* sponza = "C:\\Users\\hankarun\\Desktop\\bgfx\\testEngine\\data\\sponza\\sponza.obj";
 
 namespace fileops
 {
@@ -145,7 +146,7 @@ bool loadMesh(const MeshHandle& handle, const char* filename)
 		throw std::runtime_error(warn + err);
 	}
 	std::vector<PosColorVertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<int32_t> indices;
 
 	for (const auto& shape : shapes) {
 		for (const auto& index : shape.mesh.indices) {
@@ -180,11 +181,11 @@ bool loadMesh(const MeshHandle& handle, const char* filename)
 
 	auto vbh = bgfx::createVertexBuffer(
 		bgfx::copy(vertices.data(), vertices.size() * sizeof(vertices[0]))
-		, ms_layout
+		, ms_layout, BGFX_BUFFER_INDEX32
 	);
 
 	auto ibh = bgfx::createIndexBuffer(
-		bgfx::copy(indices.data(), indices.size() * sizeof(indices[0]))
+		bgfx::copy(indices.data(), indices.size() * sizeof(indices[0])), BGFX_BUFFER_INDEX32
 	);
 	setMesh(handle, vbh, ibh);
 }
@@ -303,7 +304,7 @@ int main(int argc, char** argv)
 
 	View view0;
 	MeshHandle cubeMesh = createMesh();
-	loadMesh(cubeMesh, modelFilename);
+	loadMesh(cubeMesh, cube);
 
 	constexpr int meshCount = 25;
 
