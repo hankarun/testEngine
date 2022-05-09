@@ -18,7 +18,10 @@
 #include <random>
 
 const char* cube = "C:\\Users\\hankarun\\Desktop\\bgfx\\testEngine\\data\\cube\\untitled.obj";
+const char* sphere = "C:\\Users\\hankarun\\Desktop\\bgfx\\testEngine\\data\\sphere\\untitled.obj";
 const char* sponza = "C:\\Users\\hankarun\\Desktop\\bgfx\\testEngine\\data\\sponza\\sponza.obj";
+
+const char* meshFilename = sphere;
 
 namespace fileops
 {
@@ -159,9 +162,9 @@ bool loadMesh(const MeshHandle& handle, const char* filename)
 			};
 
 			vertex.normal = {
-				attrib.vertices[3 * index.normal_index + 0],
-				attrib.vertices[3 * index.normal_index + 1],
-				attrib.vertices[3 * index.normal_index + 2]
+				attrib.normals[3 * index.normal_index + 0],
+				attrib.normals[3 * index.normal_index + 1],
+				attrib.normals[3 * index.normal_index + 2]
 			};
 
 			vertex.abgr = 0xffffffff;
@@ -193,17 +196,24 @@ bool loadMesh(const MeshHandle& handle, const char* filename)
 struct View
 {
 	unsigned int id = 0;
-	glm::vec3 position = { -10.0f, -5.0f, -20.0f };
-	glm::quat rotation = { 1, 0, 0, 0 };
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	float yaw = 0;
+	float pitch = 0;
 	float fov = 60.0f;
 	unsigned int width = 800;
 	unsigned int height = 600;
 
-	glm::mat4x4 getViewMat() const
+	glm::mat4x4 getViewMat()
 	{
-		glm::vec3 upVector = glm::vec3(0, 1, 0);
-		auto translation = glm::translate(glm::mat4(1.0f), position);
-		return translation * glm::mat4x4(rotation);
+		glm::vec3 direction;
+		direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+		direction.y = sin(glm::radians(pitch));
+		direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		cameraFront = glm::normalize(direction);
+
+		return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	}
 
 	glm::mat4x4 getProjMat() const
@@ -303,8 +313,8 @@ int main(int argc, char** argv)
 	bgfx::setViewRect(0, 0, 0, width, height);
 
 	View view0;
-	MeshHandle cubeMesh = createMesh();
-	loadMesh(cubeMesh, cube);
+	MeshHandle mesh = createMesh();
+	loadMesh(mesh, meshFilename);
 
 	constexpr int meshCount = 25;
 
@@ -312,7 +322,7 @@ int main(int argc, char** argv)
 	objects.resize(meshCount);
 	for (auto& object : objects)
 	{
-		object.meshHandle = cubeMesh;
+		object.meshHandle = mesh;
 	}
 
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -329,7 +339,7 @@ int main(int argc, char** argv)
 			//objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(0, 1, 0));
 			//objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(1, 0, 0));
 			//objects[index].rotation = glm::rotate(objects[index].rotation, glm::radians(angle), glm::vec3(0, 0, 1));
-			objects[index].position = { x * 4, y * 4, -4 };
+			objects[index].position = { 4, y * 4, x * 4 };
 		}
 	}
 
@@ -348,23 +358,28 @@ int main(int argc, char** argv)
 				break;
 			case SDL_KEYDOWN:
 				switch (currentEvent.key.keysym.sym) {
-				case SDLK_LEFT:
-					view0.position.x -= 1;
+				case SDLK_a:					
+					view0.cameraPos.z -= 1;
 					break;
-				case SDLK_RIGHT:
-					view0.position.x += 1;
+				case SDLK_d:
+					view0.cameraPos.z += 1;
 					break;
-				case SDLK_UP:
-					view0.position.y -= 1;
+				case SDLK_e:
+					view0.cameraPos.y += 1;
 					break;
-				case SDLK_DOWN:
-					view0.position.y += 1;
+				case SDLK_q:
+					view0.cameraPos.y -= 1;
+					break;
+				case SDLK_w:
+					view0.cameraPos.x += 1;
+					break;
+				case SDLK_s:
+					view0.cameraPos.x -= 1;
 					break;
 				default:
 					break;
 				}
 				break;
-
 			case SDL_KEYUP:
 				break;
 
